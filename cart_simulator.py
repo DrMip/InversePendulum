@@ -130,6 +130,7 @@ class Visualize:
         # Draw the rotated rod
         self.screen.blit(rotated_rod, (blit_x, blit_y))
 
-vis = Visualize()
+if __name__ == "__main__":
+    vis = Visualize()
 
-vis.play()
+    vis.play()

@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from tkinter import Tk, Scale, HORIZONTAL
-
 import keyboard
 import math
+from cart_simulator import Visualize
 
 class Simulation():
 
@@ -27,7 +27,7 @@ class Simulation():
         a = self.k + self.R*gamma/self.k
         b = self.R*self.I1/self.k + self.L*gamma/self.k
         c = self.L*self.I1/self.k
-        self.I2 = 1
+        self.I2 = 0.03
         self.bp = 0.001
         self.l = 0.7
         self. mr = 0.2
@@ -44,6 +44,8 @@ class Simulation():
         self.a_vector = [s0*self.wheel_radius]
         self.distance_vector = [0]
         self.theta_vector = [theta0]
+
+        self.simulator = Visualize()
 
 
     def f(self, t, w, s, v, a, b, c):
@@ -97,6 +99,10 @@ class Simulation():
              self.runge_kutta4(self.time_vector[-1])
              if is_plot:
                   self.plot_briefly(ax)
+             if is_simulate:
+                  print(self.theta_vector[-1])
+                  self.simulator.simulate(self.distance_vector[-1], self.theta_vector[-1])
+             
     
 
     def runge_kutta4(self, ts):
@@ -134,7 +140,7 @@ class Simulation():
 
 
 s = Simulation(0, 0, 0, 0.1, 0)
-s.run(True, False, 40)
+s.run(True, True, 40)
 
 
 
