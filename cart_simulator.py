@@ -78,7 +78,7 @@ class Visualize:
             pygame.draw.line(self.screen, BLACK, (0,SCREEN_HEIGHT - 220), (SCREEN_WIDTH, SCREEN_HEIGHT - 220), 10)
 
             # Rotate the rod image
-            self.rotate_pendulum(math.radians(self.rod_angle))
+            self.rotate_pendulum(math.radians(-self.rod_angle))
 
 
             # Update display
@@ -119,9 +119,8 @@ class Visualize:
         offset_y = self.rod_origin[1] - self.rod_original.get_height() / 2
 
         # Rotate that offset
-        angle_rad = math.radians(self.rod_angle)
-        rot_offset_x = offset_x * math.cos(angle_rad) - offset_y * math.sin(angle_rad)
-        rot_offset_y = offset_x * math.sin(angle_rad) + offset_y * math.cos(angle_rad)
+        rot_offset_x = offset_x * math.cos(theta) - offset_y * math.sin(theta)
+        rot_offset_y = offset_x * math.sin(theta) + offset_y * math.cos(theta)
 
         # Final blit position
         blit_x = pivot_x - rotated_rect.width / 2 - rot_offset_x

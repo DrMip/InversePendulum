@@ -27,7 +27,7 @@ class Simulation():
         a = self.k + self.R*gamma/self.k
         b = self.R*self.I1/self.k + self.L*gamma/self.k
         c = self.L*self.I1/self.k
-        self.I2 = 0.03
+        self.I2 = 1
         self.bp = 0.001
         self.l = 0.7
         self. mr = 0.2
@@ -101,7 +101,7 @@ class Simulation():
                   self.plot_briefly(ax)
              if is_simulate:
                   print(self.theta_vector[-1])
-                  self.simulator.simulate(self.distance_vector[-1], self.theta_vector[-1])
+                  self.simulator.simulate(self.distance_vector[-1], -self.theta_vector[-1])
              
     
 
@@ -139,8 +139,8 @@ class Simulation():
 
 
 
-s = Simulation(0, 0, 0, 0.1, 0)
-s.run(True, True, 40)
+s = Simulation(0, 0, 0, 0.01, 0)
+s.run(False, True, 40)
 
 
 
