@@ -21,7 +21,7 @@ def f2(t, theta, acceleration, pendconst):
     return calc_f2
 
 
-def runge_kutta4(t0, h, voltage_slider, consts, w0, s0, theta0, wheel_radius, pendconst):
+def runge_kutta4(t0, h, voltage_slider, consts, w0, s0, theta0, wheel_radius, pendconst, is_plot):
 
     plt.ion()
     fig, ax = plt.subplots(3, 1, figsize=(10, 6))
@@ -72,10 +72,12 @@ def runge_kutta4(t0, h, voltage_slider, consts, w0, s0, theta0, wheel_radius, pe
         ts = ts + h 
         t_vector.append(ts)
 
-        plot_briefly(ax, fig, t_vector, theta_vector, a_vector, d_vector)
+        if is_plot:
+            plot_briefly(ax, fig, t_vector, theta_vector, a_vector, d_vector)
 
         if keyboard.is_pressed("q"):
             break
+
 
 
 def plot_briefly(ax, fig, t, theta, a, distance):
@@ -144,6 +146,7 @@ C = (l/2)*mr
 
 consts = [a, b, c]
 pendconst = [A, B, C]
+
 
 voltage_slider = Scale(root, from_=-5, to=5, orient=HORIZONTAL, label="voltage", resolution=0.1)
 voltage_slider.set(2)
