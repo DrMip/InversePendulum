@@ -7,7 +7,7 @@ from cart_simulator import Visualize
 
 class Simulation():
 
-    def __init__(self, w0, s0, t0, h, theta0):
+    def __init__(self, w0, s0, t0, h, theta0, theta_dot0):
         
         self.h = h
 
@@ -20,23 +20,28 @@ class Simulation():
         self.k = 2
         self.R = 1
         self.L = 0.1
-        self.wheel_mass = 20
+        self.wheel_mass = 2
         self.wheel_radius = 0.1
         self.I1 = 0.5*self.wheel_mass*(self.wheel_radius)**2
         gamma = 0.001
         a = self.k + self.R*gamma/self.k
         b = self.R*self.I1/self.k + self.L*gamma/self.k
         c = self.L*self.I1/self.k
-        self.I2 = 1
         self.bp = 0.001
         self.l = 0.7
-        self. mr = 0.2
-        self. g = 9.81
-        A = self.I2 + self.bp
+        self.mr = 0.2
+        self.g = 9.81
+
+
+        self.I2 = (1/3.0)*self.mr*(self.l)**2
+        
+        A = self.I2
         B = (self.l/2)*self.mr*self.g
         C = (self.l/2)*self.mr
+        D = -1*self.bp
+
         self.consts = [a, b, c]
-        self.pendconst = [A, B, C]
+        self.pendconst = [A, B, C, D]
 
         self.time_vector = [t0]
         self.w_vector = [w0]
@@ -44,6 +49,7 @@ class Simulation():
         self.a_vector = [s0*self.wheel_radius]
         self.distance_vector = [0]
         self.theta_vector = [theta0]
+        self.thet_dot = [theta_dot0]
 
         self.simulator = Visualize()
 
@@ -53,12 +59,13 @@ class Simulation():
         return s, calc_f
 
 
-    def f2(self, t, theta, acceleration, pendconst):
+    def f2(self, t, theta, theta_dot, acceleration, pendconst):
         a = pendconst[0]
         b = pendconst[1]
         c = pendconst[2]
-        calc_f2 = a/c*math.sin(theta) + b/c*math.cos(theta)*acceleration
-        return calc_f2
+        d = pendconst[3]
+        calc_f2 = b/a*math.sin(theta) + c/a*math.cos(theta)*acceleration + d/a*theta_dot
+        return theta_dot, calc_f2
 
 
     def plot_briefly(self, ax):
@@ -128,20 +135,23 @@ class Simulation():
             self.distance_vector.append(dist_new)
 
             theta = self.theta_vector[-1]
-            k1thet = self.f2(ts, theta, a_new, self.pendconst)
-            k2thet = self.f2(ts + self.h/2, theta + self.h/2 * k1thet, a_new, self.pendconst)
-            k3thet = self.f2(ts + self.h/2, theta + self.h/2 * k2thet, a_new, self.pendconst)
-            k4thet = self.f2(ts + self.h, theta + self.h * k3thet, a_new, self.pendconst)
+            theta_dot = self.thet_dot[-1]
+            k1thet, k1dot = self.f2(ts, theta, theta_dot, a_new, self.pendconst)
+            k2thet, k2dot = self.f2(ts + self.h/2, theta + self.h/2 * k1thet, theta_dot + self.h/2 * k1dot, a_new, self.pendconst)
+            k3thet, k3dot = self.f2(ts + self.h/2, theta + self.h/2 * k2thet, theta_dot + self.h/2 * k2dot, a_new, self.pendconst)
+            k4thet, k4dot = self.f2(ts + self.h, theta + self.h * k3thet, theta_dot + self.h*k3dot, a_new, self.pendconst)
 
             theta_new = theta + (self.h/6) * (k1thet + 2*k2thet + 2*k3thet + k4thet)
+            dot_new = theta_dot + (self.h/6) * (k1dot + 2*k2dot + 2*k3dot + k4dot)
             self.theta_vector.append(theta_new)
+            self.thet_dot.append(dot_new)
 
             ts = ts + self.h 
             self.time_vector.append(ts)
 
 
 
-s = Simulation(0, 0, 0, 0.02, 0)
+s = Simulation(0, 0, 0, 0.02, 0, 0)
 s.run(False, True, 100)
 
 
