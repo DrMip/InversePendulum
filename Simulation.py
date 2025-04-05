@@ -13,7 +13,7 @@ class Simulation():
 
         self.root = Tk()
         self.root.title("Simulator")
-        self.voltage_slider = Scale(self.root, from_=-5, to=5, orient=HORIZONTAL, label="voltage", resolution=0.1)
+        self.voltage_slider = Scale(self.root, from_=-20, to=20, orient=HORIZONTAL, label="voltage", resolution=0.1)
         self.voltage_slider.set(2)
         self.voltage_slider.pack()
 
@@ -100,8 +100,7 @@ class Simulation():
              if is_plot:
                   self.plot_briefly(ax)
              if is_simulate:
-                  print(self.theta_vector[-1])
-                  self.simulator.simulate(self.distance_vector[-1], -self.theta_vector[-1])
+                  self.simulator.simulate(self.distance_vector[-1], -self.theta_vector[-1], self.time_vector[-1])
             
              self.root.update_idletasks()  # Process idle tasks (e.g., slider update)
              self.root.update()
@@ -142,8 +141,8 @@ class Simulation():
 
 
 
-s = Simulation(0, 0, 0, 0.01, 0)
-s.run(False, True, 40)
+s = Simulation(0, 0, 0, 0.02, 0)
+s.run(False, True, 100)
 
 
 

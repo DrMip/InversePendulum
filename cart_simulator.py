@@ -132,7 +132,7 @@ class Visualize:
 
     def show_time(self, time):
         # Prepare angle text
-        angle_text = self.font.render(f"Time: {time}s", True, (0, 0, 0))  # black text
+        angle_text = self.font.render(f"Time: {time:.2f}s", True, (0, 0, 0))  # black text
 
         # Get text position (bottom-center of screen)
         text_rect = angle_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 30))
