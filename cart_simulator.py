@@ -18,8 +18,8 @@ class Visualize:
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Cart Movement Example")
 
-        # Colors
-
+        pygame.font.init()
+        self.font = pygame.font.SysFont(None, 36)  # Use default font, size 36
 
         # Cart settings
         self.cart_width = 100
@@ -88,7 +88,7 @@ class Visualize:
         pygame.quit()
         sys.exit()
 
-    def simulate(self, location : float, theta : float):
+    def simulate(self, location : float, theta : float, time):
         self.screen.fill(WHITE)
 
         self.cart_rect.x = location * SCREEN_WIDTH / 5
@@ -100,6 +100,7 @@ class Visualize:
         pygame.draw.line(self.screen, BLACK, (0, SCREEN_HEIGHT - 220), (SCREEN_WIDTH, SCREEN_HEIGHT - 220), 10)
 
         self.rotate_pendulum(theta)
+        self.show_time(time)
 
         # Update display
         pygame.display.flip()
@@ -128,6 +129,17 @@ class Visualize:
 
         # Draw the rotated rod
         self.screen.blit(rotated_rod, (blit_x, blit_y))
+
+    def show_time(self, time):
+        # Prepare angle text
+        angle_text = self.font.render(f"Time: {time}s", True, (0, 0, 0))  # black text
+
+        # Get text position (bottom-center of screen)
+        text_rect = angle_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 30))
+
+        # Draw text
+        self.screen.blit(angle_text, text_rect)
+
 
 if __name__ == "__main__":
     vis = Visualize()
