@@ -102,6 +102,9 @@ class Simulation():
              if is_simulate:
                   print(self.theta_vector[-1])
                   self.simulator.simulate(self.distance_vector[-1], -self.theta_vector[-1])
+            
+             self.root.update_idletasks()  # Process idle tasks (e.g., slider update)
+             self.root.update()
              
     
 
