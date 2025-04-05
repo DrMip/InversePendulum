@@ -7,6 +7,7 @@ from cart_simulator import Visualize
 
 class Simulation():
 
+    #legendary code
     def __init__(self, w0, s0, t0, h, theta0, theta_dot0):
         
         self.h = h
