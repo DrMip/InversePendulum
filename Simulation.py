@@ -34,6 +34,8 @@ class Simulation():
         self.g = 9.81
 
 
+        self.setpoint = 1
+
         self.I2 = (1/3.0)*self.mr*(self.l)**2
         
         A = self.I2
@@ -51,8 +53,40 @@ class Simulation():
         self.distance_vector = [0]
         self.theta_vector = [theta0]
         self.thet_dot = [theta_dot0]
+        self.velocity_vector = [self.wheel_radius*w0]
+        self.e = [self.setpoint]
+        self.e_precentage = [100]
 
         self.simulator = Visualize()
+
+    def PID_controller_volt(self, setpoint):
+        current_time = self.time_vector[-1]
+        e_p = setpoint - self.wheel_radius*self.w_vector[-1]
+        e_i = setpoint*current_time - self.distance_vector[-1]
+        e_d = -1*self.wheel_radius*self.s_vector[-1]
+
+
+        K_U = 100
+        T_U = 0.040417
+        # k_p = 0.6*K_U #400
+        # k_d = 1.2*K_U/T_U #2
+        # k_i = 0.075*T_U*K_U #1000
+
+        k_p = 400
+        k_d = 2
+        k_i = 3000
+
+        val = k_p*e_p + k_d*e_d + k_i*e_i
+
+        self.e.append(e_p)
+        self.e_precentage.append(e_p/(self.setpoint - self.velocity_vector[0])*100)
+
+        print(val)
+
+        if val>240:
+            val = 240
+        
+        return val
 
 
     def f(self, t, w, s, v, a, b, c):
@@ -80,10 +114,13 @@ class Simulation():
         ax[0].legend()
 
         ax[1].clear()
-        ax[1].plot(self.time_vector, self.a_vector, label="a(t)", color='r')
+        ax[1].plot(self.time_vector, self.velocity_vector, label="v(t)", color='r')
+        ax[1].plot(self.time_vector, [self.setpoint]*len(self.time_vector), label="setpoint", color="m")
+        ax[1].plot(self.time_vector, self.e, label="error", color="b")
+
         ax[1].set_xlabel("t")
-        ax[1].set_ylabel("a")
-        ax[1].set_title("a(t)")
+        ax[1].set_ylabel("v")
+        ax[1].set_title("v(t)")
         ax[1].grid(True)
         ax[1].legend() 
 
@@ -94,7 +131,22 @@ class Simulation():
         ax[2].set_ylabel("d")
         ax[2].set_title("d(t)")
         ax[2].grid(True)
-        ax[2].legend() 
+        ax[2].legend()
+
+
+        if self.time_vector[-1]>0.01:
+            ax[3].clear()
+            ax[3].plot(self.time_vector[50:], self.e_precentage[50:], label="e(t)", color='r')
+            ax[3].set_xlabel("t")
+            ax[3].set_ylabel("error in %")
+            ax[3].set_title("e(t)")
+            ax[3].grid(True)
+            ax[3].legend() 
+
+
+        # if self.time_vector[-1] > 0.2:
+        #      plt.draw()
+        #      plt.pause(100)
 
         plt.draw()
         plt.pause(0.05)
@@ -102,7 +154,7 @@ class Simulation():
 
     def run(self, is_plot, is_simulate, simulation_length):
         plt.ion()
-        fig, ax = plt.subplots(3, 1, figsize=(10, 6))
+        fig, ax = plt.subplots(4, 1, figsize=(10, 6))
         while self.time_vector[-1] < simulation_length:
              self.runge_kutta4(self.time_vector[-1])
              if is_plot:
@@ -118,7 +170,8 @@ class Simulation():
     def runge_kutta4(self, ts):
             w = self.w_vector[-1]
             s = self.s_vector[-1]
-            v = self.voltage_slider.get()
+            v = self.PID_controller_volt(self.setpoint)  
+            #v = self.voltage_slider.get()
 
             k1w, k1s = self.f(ts, w, s, v, self.consts[0], self.consts[1], self.consts[2])
             k2w, k2s = self.f(ts + self.h/2, w + self.h/2 * k1w, s+ self.h/2 * k1s, v,self.consts[0], self.consts[1], self.consts[2])
@@ -130,6 +183,7 @@ class Simulation():
             
             self.w_vector.append(w_new)
             self.s_vector.append(s_new)
+            self.velocity_vector.append(w_new*self.wheel_radius)
             a_new = s_new*self.wheel_radius
             self.a_vector.append(a_new)
             dist_new = w_new*self.wheel_radius*self.h + self.distance_vector[-1]
@@ -152,8 +206,8 @@ class Simulation():
 
 
 
-s = Simulation(0, 0, 0, 0.02, 0, 0)
-s.run(False, True, 100)
+s = Simulation(0, 0, 0, 0.002, 0, 0)
+s.run(True, True, 100)
 
 
 
