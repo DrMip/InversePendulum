@@ -134,14 +134,14 @@ class Simulation():
         ax[2].legend()
 
 
-        if self.time_vector[-1]>0.01:
-            ax[3].clear()
-            ax[3].plot(self.time_vector[50:], self.e_precentage[50:], label="e(t)", color='r')
-            ax[3].set_xlabel("t")
-            ax[3].set_ylabel("error in %")
-            ax[3].set_title("e(t)")
-            ax[3].grid(True)
-            ax[3].legend() 
+        # if self.time_vector[-1]>0.005:
+        #     ax[3].clear()
+        #     ax[3].plot(self.time_vector[5:], self.e_precentage[5:], label="e(t)", color='r')
+        #     ax[3].set_xlabel("t")
+        #     ax[3].set_ylabel("error in %")
+        #     ax[3].set_title("e(t)")
+        #     ax[3].grid(True)
+        #     ax[3].legend() 
 
 
         # if self.time_vector[-1] > 0.2:
@@ -206,7 +206,7 @@ class Simulation():
 
 
 
-s = Simulation(0, 0, 0, 0.002, 0, 0)
+s = Simulation(0, 0, 0, 0.02, 0, 0)
 s.run(True, True, 100)
 
 
