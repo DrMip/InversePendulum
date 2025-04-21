@@ -52,6 +52,6 @@ class RootLocus():
         plt.show()
 
 
-r = RootLocus(1, 0, 0.3)
+r = RootLocus(1, 0, 0)
 n, d = r.calc_KH()
 r.plot_root_locus(n, d)
