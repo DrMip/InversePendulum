@@ -1,3 +1,5 @@
+from pkgutil import get_loader
+
 import numpy as np
 import matplotlib.pyplot as plt
 from tkinter import Tk, Scale, HORIZONTAL
@@ -5,24 +7,25 @@ import keyboard
 import math
 from cart_simulator import Visualize
 
+e_i = 0
 class Simulation():
 
-    def __init__(self, w0, s0, t0, h, theta0, theta_dot0):
+    def __init__(self,h, w0 = 0, s0 = 0, t0 = 0, theta0 = 0, theta_dot0= 0):
         
         self.h = h
 
-        self.root = Tk()
-        self.root.title("Simulator")
-        self.voltage_slider = Scale(self.root, from_=-20, to=20, orient=HORIZONTAL, label="voltage", resolution=0.1)
-        self.voltage_slider.set(2)
-        self.voltage_slider.pack()
+        #self.root = Tk()
+        #self.root.title("Simulator")
+        #self.voltage_slider = Scale(self.root, from_=-20, to=20, orient=HORIZONTAL, label="voltage", resolution=0.1)
+        #self.voltage_slider.set(2)
+        #self.voltage_slider.pack()
 
         self.k = 2
         self.R = 1
-        self.L = 0.1
+        self.L = 0.0001
         self.wheel_mass = 2
         self.wheel_radius = 0.1
-        self.I1 = 0.5*self.wheel_mass*(self.wheel_radius)**2
+        self.I1 = 1.5*self.wheel_mass*(self.wheel_radius)**2
         gamma = 0.001
         a = self.k + self.R*gamma/self.k
         b = self.R*self.I1/self.k + self.L*gamma/self.k
@@ -33,7 +36,7 @@ class Simulation():
         self.g = 9.81
 
 
-        self.setpoint = 1
+        self.setpoint = 0
 
         self.I2 = (1/3.0)*self.mr*(self.l)**2
         
@@ -44,7 +47,8 @@ class Simulation():
 
         self.consts = [a, b, c]
         self.pendconst = [A, B, C, D]
-
+        print(self.consts)
+        print(self.pendconst)
         self.time_vector = [t0]
         self.w_vector = [w0]
         self.s_vector = [s0]
@@ -52,41 +56,52 @@ class Simulation():
         self.distance_vector = [0]
         self.theta_vector = [theta0]
         self.thet_dot = [theta_dot0]
+        self.theta_integral = [0]
         self.velocity_vector = [self.wheel_radius*w0]
         self.e = [self.setpoint]
         self.e_precentage = [100]
 
-        self.simulator = Visualize()
+        #self.simulator = Visualize()
 
-    def PID_controller_volt(self, setpoint):
+    def PID_controller_volt(self, setpoint, flag = "velocity"):
+        global e_i
         current_time = self.time_vector[-1]
-        e_p = setpoint - self.wheel_radius*self.w_vector[-1]
-        e_i = setpoint*current_time - self.distance_vector[-1]
-        e_d = -1*self.wheel_radius*self.s_vector[-1]
+        if flag == "velocity":
+            e_p = setpoint - self.wheel_radius*self.w_vector[-1]
+            e_i += e_p*self.h
+            e_d = -1*self.wheel_radius*self.s_vector[-1]
+        elif flag == "angle":
+            e_p = self.theta_vector[-1] - setpoint
+            e_i += e_p*self.h
+            e_d = self.thet_dot[-1]
 
+        else:
+            e_p = 0
+            e_i = 0
+            e_d = 0
 
-        K_U = 100
-        T_U = 0.040417
-        # k_p = 0.6*K_U #400
-        # k_d = 1.2*K_U/T_U #2
-        # k_i = 0.075*T_U*K_U #1000
+        if flag == "velocity":
+            k_p = 0
+            k_d = 0
+            k_i = 10
 
-        k_p = 400
-        k_d = 2
-        k_i = 3000
+            val = (k_p*e_p + k_d*e_d + k_i*e_i)
+        if flag == "angle":
+            k_p = 4
+            k_d = 0
+            k_i = 12
 
-        val = k_p*e_p + k_d*e_d + k_i*e_i
+            val = (k_p * e_p + k_d * e_d + k_i * e_i) * 0.833
 
         self.e.append(e_p)
-        self.e_precentage.append(e_p/(self.setpoint - self.velocity_vector[0])*100)
+        if self.setpoint - self.velocity_vector[0] > 0:
+            self.e_precentage.append(e_p/(self.setpoint - self.velocity_vector[0])*100)
 
-        print(val)
 
         if val>240:
             val = 240
         
         return val
-
 
     def f(self, t, w, s, v, a, b, c):
         calc_f = v/c - (a/c)*w - (b/c)*s
@@ -155,21 +170,25 @@ class Simulation():
         plt.ion()
         fig, ax = plt.subplots(4, 1, figsize=(10, 6))
         while self.time_vector[-1] < simulation_length:
-             self.runge_kutta4(self.time_vector[-1])
+             self.runge_kutta4(self.time_vector[-1], "velocity")
              if is_plot:
                   self.plot_briefly(ax)
              if is_simulate:
                   self.simulator.simulate(self.distance_vector[-1], -self.theta_vector[-1], self.time_vector[-1])
             
-             self.root.update_idletasks()  # Process idle tasks (e.g., slider update)
-             self.root.update()
+             #self.root.update_idletasks()  # Process idle tasks (e.g., slider update)
+             #self.root.update()
              
-    
+    def get_system_vars(self, flag = "velocity") -> (float,float,float):
+        self.runge_kutta4(self.time_vector[-1], flag)
+        return self.distance_vector[-1], -self.theta_vector[-1], self.time_vector[-1], self.a_vector[-1], self.velocity_vector[-1]
 
-    def runge_kutta4(self, ts):
+
+    def runge_kutta4(self, ts, flag):
+            global e_i
             w = self.w_vector[-1]
             s = self.s_vector[-1]
-            v = self.PID_controller_volt(self.setpoint)  
+            v = self.PID_controller_volt(self.setpoint, flag)
             #v = self.voltage_slider.get()
 
             k1w, k1s = self.f(ts, w, s, v, self.consts[0], self.consts[1], self.consts[2])
@@ -199,14 +218,16 @@ class Simulation():
             dot_new = theta_dot + (self.h/6) * (k1dot + 2*k2dot + 2*k3dot + k4dot)
             self.theta_vector.append(theta_new)
             self.thet_dot.append(dot_new)
+            theta_int_new = theta_new*self.h + self.theta_integral[-1]
+            self.theta_integral.append(theta_int_new)
 
             ts = ts + self.h 
             self.time_vector.append(ts)
 
 
-
-s = Simulation(0, 0, 0, 0.02, 0, 0)
-s.run(True, True, 100)
+# if __name__ == "__main__":
+#     s = Simulation(0.02)
+#     s.run(True, True, 100)
 
 
 
