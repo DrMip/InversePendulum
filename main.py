@@ -45,7 +45,7 @@ dt = 0.0002  # frame time step
 sim = Simulation(dt, theta0 = 0.01)
 # --------- Animation functions ---------
 def init():
-    global real_start_time
+    global real_start_time,ax
     real_start_time = time.time()
 
     cart_patch.set_xy((-cart_width / 2, 0))
@@ -53,21 +53,24 @@ def init():
     timer.set_text('2.5')
     acc_display.set_text(f"Acc: {acc:.4f} m/s^2")
     vel_display.set_text(f"Vel: {vel:.4f} m/s")
+
+    #ax = sim.init_plot()
+
     return cart_patch, pendulum_line, timer, acc_display, vel_display
 
 
 def update(frame):
-    global t, real_start_time, acc, vel, theta
+    global t, real_start_time, acc, vel, theta,ax
+
     real_elapsed = time.time() - real_start_time  # How much real time passed
-
-    # Decide how much simulation time to advance PER real second
-
-
     target_sim_time = real_elapsed * SIM_SPEED  # We want to simulate faster
 
     while t < target_sim_time:
+        real_elapsed = time.time() - real_start_time
+        target_sim_time = real_elapsed * SIM_SPEED
         loc, theta, t, acc, vel = sim.get_system_vars("angle")
 
+    #sim.plot_briefly(ax)
     # Update cart position
     cart_patch.set_xy((loc - cart_width / 2, 0))
 
@@ -82,8 +85,8 @@ def update(frame):
 
     # Add the timer
     timer.set_text(f"Time: {t:.2f} s")
-    acc_display.set_text(f"Acc: {acc:.1f} m/s^2")
-    vel_display.set_text(f"Vel: {vel:.1f} m/s")
+    acc_display.set_text(f"Acc: {acc:.2f} m/s^2")
+    vel_display.set_text(f"Vel: {vel:.2f} m/s")
 
     return cart_patch, pendulum_line, timer, acc_display, vel_display
 
