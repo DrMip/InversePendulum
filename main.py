@@ -69,6 +69,7 @@ def update(frame):
         real_elapsed = time.time() - real_start_time
         target_sim_time = real_elapsed * SIM_SPEED
         loc, theta, t, acc, vel = sim.get_system_vars("angle")
+        print(loc)
 
     #sim.plot_briefly(ax)
     # Update cart position
