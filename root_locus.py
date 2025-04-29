@@ -55,19 +55,47 @@ class RootLocus():
         roots = ctrl.poles(T_s)
 
         return zeros, roots
+    
+
+
+    def second_order(self):
+        T = self.system_transfer()
+        z,p = self.poles_zeros(T)
+        self.plot_root_locus(z, p)
+        rz, rp, removed_z, removed_p = self.removeed_zeros_poles(z,p)
+        self.plot_root_locus(rz, rp)
+
+        q_den, r_den = np.polydiv(p, removed_p)
+        q_num, r_num = np.polydiv(z, removed_z)
+
+        print("---")
+
+        print(q_den)
+
+
+
+        if len(rp)>2:
+            return False
+        
+        print(T.num, T.den)
+        
+
+        
 
     def calc_OS(self):
         z,p = self.poles_zeros(self.system_transfer())
-        real_poles = self.find_complex_differences(z,p)
-        omega = np.sqrt(real_poles[0]*real_poles[1])
-        b = real_poles[0] + real_poles[1]
-        xi = b/(2*omega)
-        OS = np.exp(-np.pi * xi / np.sqrt(1-xi**2))
-        print(np.real(OS))
+        self.plot_root_locus(z, p)
+        rz, rp = self.remove_close_zero_pole_pairs(z,p)
+        self.plot_root_locus(rz, rp)
+
+        # omega = np.sqrt(real_poles[0]*real_poles[1])
+        # b = real_poles[0] + real_poles[1]
+        # xi = b/(2*omega)
+        # OS = np.exp(-np.pi * xi / np.sqrt(1-xi**2))
+        # print(np.real(OS))
 
 
-    def plot_root_locus(self, T_s):
-        z, p = self.poles_zeros(T_s)
+    def plot_root_locus(self, z, p):
         fig,ax = plt.subplots()
 
 
@@ -82,7 +110,9 @@ class RootLocus():
 
         plt.grid()
 
-        plt.show()
+        plt.show(block=False)
+        plt.pause(0.1)  # <-- This makes sure the window stays open
+
 
 
     def calculate_overshoot(self):
@@ -166,7 +196,7 @@ class RootLocus():
         plt.show()
 
     @staticmethod
-    def find_complex_differences(list1, list2, tol=1e-2):
+    def find_complex_differences(list1, list2, tol=1e-2): #TODO: FIX
         """
         Returns the complex numbers that are different between list1 and list2.
         Two numbers are considered equal if their absolute difference is below `tol`.
@@ -188,12 +218,38 @@ class RootLocus():
         return diffs
 
 
+    def removeed_zeros_poles(self, zeros, poles, tol=1e-3):
+
+        zero_mask = np.ones(len(zeros), dtype=bool)
+        pole_mask = np.ones(len(poles), dtype=bool)
+
+        removed_zeros = []
+        removed_poles = []
+
+        for i, p in enumerate(poles):
+            if not pole_mask[i]:
+                continue
+            distances = np.abs(zeros - p)
+            close_indices = np.where((distances < tol) & zero_mask)[0]
+            if close_indices.size > 0:
+                # Cancel the first close zero
+                zero_index = close_indices[0]
+                zero_mask[zero_index] = False
+                pole_mask[i] = False
+                removed_zeros.append(zeros[zero_index])
+                removed_poles.append(p)
+
+        new_zeros = zeros[zero_mask]
+        new_poles = poles[pole_mask]
+        return new_zeros, new_poles, np.array(removed_zeros), np.array(removed_poles)
+
+
+
 
 
 r = RootLocus(10, 0,0)
 T_s = r.system_transfer()
-r.plot_root_locus(T_s)
-r.calc_OS()
+print(r.second_order())
 # overshoot, peak, final = r.calculate_overshoot()
 # P_values = np.linspace(0.1, 100, 50)
 # r.plot_sse_vs_P(P_values)

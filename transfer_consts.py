@@ -2,10 +2,10 @@ class TransferConsts:
 
         k = 2
         R = 1
-        L = 0.1
+        L = 0.0001
         wheel_mass = 2
         wheel_radius = 0.1
-        I1 = 0.5*wheel_mass*(wheel_radius)**2
+        I1 = 1.5*wheel_mass*(wheel_radius)**2
         gamma = 0.001
         c = (k + R*gamma/k)*wheel_radius
         b = (R*I1/k + L*gamma/k)*wheel_radius

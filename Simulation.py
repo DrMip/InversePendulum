@@ -19,10 +19,10 @@ class Simulation():
 
         self.k = 2
         self.R = 1
-        self.L = 0.1
+        self.L = 0.0001
         self.wheel_mass = 2
         self.wheel_radius = 0.1
-        self.I1 = 0.5*self.wheel_mass*(self.wheel_radius)**2
+        self.I1 = 1.5*self.wheel_mass*(self.wheel_radius)**2
         gamma = 0.001
         a = self.k + self.R*gamma/self.k
         b = self.R*self.I1/self.k + self.L*gamma/self.k
