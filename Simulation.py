@@ -71,7 +71,7 @@ class Simulation():
             self.e_i_vel += e_p*self.h
             e_d = -1*self.accel_vector[-1]
         elif flag == "angle":
-            setpoint = 0.2*setpoint
+            setpoint = 1*setpoint
             e_p = -self.theta_vector[-1] + setpoint
             self.e_i_angle += e_p*self.h
             e_d = -1*self.thet_dot[-1]
@@ -92,7 +92,7 @@ class Simulation():
             k_d = 0
             k_i = 17
 
-            val = (k_p * e_p + k_d * e_d + k_i * self.e_i_angle)
+            val = (k_p * e_p + k_d * e_d + k_i * self.e_i_angle)*1.5
 
         self.e.append(e_p)
         if self.setpoint - self.velocity_vector[0] > 0:
@@ -109,13 +109,28 @@ class Simulation():
         return s, calc_f
 
 
-    def f2(self, t, theta, theta_dot, acceleration, pendconst):
-        a = pendconst[0]
-        b = pendconst[1]
-        c = pendconst[2]
-        d = pendconst[3]
-        calc_f2 = b/a*math.sin(theta) + c/a*math.cos(theta)*acceleration + d/a*theta_dot
-        return theta_dot, calc_f2
+    # def f2(self, t, theta, theta_dot, acceleration, pendconst):
+    #     a = pendconst[0]
+    #     b = pendconst[1]
+    #     c = pendconst[2]
+    #     d = pendconst[3]
+    #     calc_f2 = b/a*math.sin(theta) + c/a*math.cos(theta)*acceleration + d/a*theta_dot
+    #     return theta_dot, calc_f2
+
+
+
+    def f_combined(self, t, theta, theta_dot, w, s, v):
+        # Constants
+        a2, b2, c2, d2 = self.pendconst  # pendulum constants
+
+        # Compute acceleration from voltage
+
+
+        # Angular acceleration using the result
+        theta_ddot = (b2/a2)*math.sin(theta) + (c2/a2)*math.cos(theta)*s + (d2/a2)*theta_dot
+
+
+        return theta_dot, theta_ddot
 
 
     def plot_briefly(self, ax):
@@ -189,6 +204,9 @@ class Simulation():
         return self.time_vector, self.velocity_vector
 
 
+    def limit_theta(self, theta):
+        return math.fmod(theta + math.pi, 2 * math.pi) - math.pi
+
     def runge_kutta4(self, ts, flag):
             w = self.velocity_vector[-1]
             s = self.accel_vector[-1]
@@ -210,13 +228,18 @@ class Simulation():
 
             theta = self.theta_vector[-1]
             theta_dot = self.thet_dot[-1]
-            k1thet, k1dot = self.f2(ts, theta, theta_dot, s_new, self.pendconst)
-            k2thet, k2dot = self.f2(ts + self.h/2, theta + self.h/2 * k1thet, theta_dot + self.h/2 * k1dot, s_new, self.pendconst)
-            k3thet, k3dot = self.f2(ts + self.h/2, theta + self.h/2 * k2thet, theta_dot + self.h/2 * k2dot, s_new, self.pendconst)
-            k4thet, k4dot = self.f2(ts + self.h, theta + self.h * k3thet, theta_dot + self.h*k3dot, s_new, self.pendconst)
+            k1thet, k1dot = self.f_combined(ts, theta, theta_dot, w, s, v)
+            k2thet, k2dot = self.f_combined(ts + self.h/2, theta + self.h/2 * k1thet, theta_dot + self.h/2 * k1dot, w, s, v)
+            k3thet, k3dot = self.f_combined(ts + self.h/2, theta + self.h/2 * k2thet, theta_dot + self.h/2 * k2dot, w, s, v)
+            k4thet, k4dot = self.f_combined(ts + self.h, theta + self.h * k3thet, theta_dot + self.h*k3dot, w, s, v)
 
             theta_new = theta + (self.h/6) * (k1thet + 2*k2thet + 2*k3thet + k4thet)
+            theta_new = self.limit_theta(theta_new)
+
+
             dot_new = theta_dot + (self.h/6) * (k1dot + 2*k2dot + 2*k3dot + k4dot)
+
+
             self.theta_vector.append(theta_new)
             self.thet_dot.append(dot_new)
             theta_int_new = theta_new*self.h + self.theta_integral[-1]
@@ -237,7 +260,7 @@ class Simulation():
 
 
 if __name__ == "__main__":
-    s = Simulation(0.0002, 0.01, theta0=0.0)
+    s = Simulation(0.0002, 0, theta0=-0.7)
     s.plot(20)
 
 

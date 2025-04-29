@@ -6,7 +6,7 @@ import matplotlib.animation as animation
 import time
 from Simulation import Simulation
 
-SIM_SPEED = 1 # Simulation runs 5x faster than real time
+SIM_SPEED = 0.3 # Simulation runs 5x faster than real time
 t = 0
 acc = 0
 vel = 0
@@ -21,7 +21,7 @@ acc_display = ax.text(0.3, 0.8, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5
                 transform=ax.transAxes, ha="center")
 vel_display = ax.text(0.5, 0.8, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
                 transform=ax.transAxes, ha="center")
-ax.set_xlim(-5,5)
+ax.set_xlim(-7,7)
 ax.set_ylim(-1, 5)
 ax.set_aspect('equal')
 plt.grid()
@@ -45,7 +45,7 @@ dt = 0.0002  # frame time step
 
 
 
-sim = Simulation(dt, 0, theta0 = 0.01)
+sim = Simulation(dt, 0, theta0 = 0.4)
 # --------- Animation functions ---------
 def init():
     global real_start_time,ax
