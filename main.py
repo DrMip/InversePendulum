@@ -12,6 +12,7 @@ acc = 0
 vel = 0
 real_start_time = 0
 theta = 0
+loc = 0
 # --------- Set up figure and axes ---------
 fig, ax = plt.subplots()
 timer = ax.text(0.5, 0.9, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
@@ -40,9 +41,11 @@ ax.add_patch(cart_patch)
 pendulum_line, = ax.plot([], [], 'r-', lw=3)
 
 dt = 0.0002  # frame time step
+# fig2, ax2 = plt.subplots(4, 1, figsize=(10, 6))
 
 
-sim = Simulation(dt, theta0 = 0.01)
+
+sim = Simulation(dt, 0, theta0 = 0.01)
 # --------- Animation functions ---------
 def init():
     global real_start_time,ax
@@ -60,16 +63,15 @@ def init():
 
 
 def update(frame):
-    global t, real_start_time, acc, vel, theta,ax
+    global t, real_start_time, acc, vel, theta,ax, loc
 
     real_elapsed = time.time() - real_start_time  # How much real time passed
     target_sim_time = real_elapsed * SIM_SPEED  # We want to simulate faster
-
+    
     while t < target_sim_time:
         real_elapsed = time.time() - real_start_time
         target_sim_time = real_elapsed * SIM_SPEED
-        loc, theta, t, acc, vel = sim.get_system_vars("angle")
-        print(loc)
+        loc, theta, t, acc, vel = sim.get_system_vars(ax, "angle")
 
     #sim.plot_briefly(ax)
     # Update cart position
@@ -94,5 +96,8 @@ def update(frame):
 
 
 # --------- Run the animation ---------
+
+
+
 ani = animation.FuncAnimation(fig, update, init_func=init, frames=10000,  interval=dt*1000, blit=True)
 plt.show()
