@@ -36,7 +36,7 @@ class Simulation():
         self.g = 9.81
 
 
-        self.setpoint = 0
+        self.setpoint = 0.01
 
         self.I2 = (1/3.0)*self.mr*(self.l)**2
         
