@@ -71,7 +71,7 @@ class Simulation():
             self.e_i_vel += e_p*self.h
             e_d = -1*self.accel_vector[-1]
         elif flag == "angle":
-            setpoint = 1*setpoint
+            setpoint = 0.23*setpoint
             e_p = -self.theta_vector[-1] + setpoint
             self.e_i_angle += e_p*self.h
             e_d = -1*self.thet_dot[-1]
@@ -198,7 +198,7 @@ class Simulation():
     def get_system_vars(self, ax, flag = "velocity") -> (float,float,float, float, float):
         self.runge_kutta4(self.time_vector[-1], flag)
         #self.plot_briefly(ax)
-        return self.distance_vector[-1], -self.theta_vector[-1], self.time_vector[-1], self.accel_vector[-1], self.velocity_vector[-1]
+        return self.distance_vector[-1], self.theta_vector[-1], self.time_vector[-1], self.accel_vector[-1], self.velocity_vector[-1]
     
     def get_time_velocity(self):
         return self.time_vector, self.velocity_vector
@@ -260,8 +260,8 @@ class Simulation():
 
 
 if __name__ == "__main__":
-    s = Simulation(0.0002, 0, theta0=-0.7)
-    s.plot(20)
+    s = Simulation(0.0002, 0.4, theta0=-0.4)
+    s.plot(10)
 
 
 

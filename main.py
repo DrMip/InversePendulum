@@ -6,7 +6,7 @@ import matplotlib.animation as animation
 import time
 from Simulation import Simulation
 
-SIM_SPEED = 0.3 # Simulation runs 5x faster than real time
+SIM_SPEED = 1 # Simulation runs 5x faster than real time
 t = 0
 acc = 0
 vel = 0
@@ -20,6 +20,8 @@ timer = ax.text(0.5, 0.9, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
 acc_display = ax.text(0.3, 0.8, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
                 transform=ax.transAxes, ha="center")
 vel_display = ax.text(0.5, 0.8, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
+                transform=ax.transAxes, ha="center")
+angle_display = ax.text(0.4, 0.85, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
                 transform=ax.transAxes, ha="center")
 ax.set_xlim(-7,7)
 ax.set_ylim(-1, 5)
@@ -45,7 +47,8 @@ dt = 0.0002  # frame time step
 
 
 
-sim = Simulation(dt, 0, theta0 = 0.4)
+setpoint = 0.1
+sim = Simulation(dt, setpoint, theta0 = 0.4)
 # --------- Animation functions ---------
 def init():
     global real_start_time,ax
@@ -56,10 +59,12 @@ def init():
     timer.set_text('2.5')
     acc_display.set_text(f"Acc: {acc:.4f} m/s^2")
     vel_display.set_text(f"Vel: {vel:.4f} m/s")
+    angle_display.set_text(f"Ang: {theta:.4f} rad")
+
 
     #ax = sim.init_plot()
 
-    return cart_patch, pendulum_line, timer, acc_display, vel_display
+    return cart_patch, pendulum_line, timer, acc_display, vel_display, angle_display
 
 
 def update(frame):
@@ -90,8 +95,10 @@ def update(frame):
     timer.set_text(f"Time: {t:.2f} s")
     acc_display.set_text(f"Acc: {acc:.2f} m/s^2")
     vel_display.set_text(f"Vel: {vel:.2f} m/s")
+    angle_display.set_text(f"Ang: {theta:.4f} rad")
 
-    return cart_patch, pendulum_line, timer, acc_display, vel_display
+
+    return cart_patch, pendulum_line, timer, acc_display, vel_display, angle_display
 
 
 
