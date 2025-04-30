@@ -47,7 +47,7 @@ dt = 0.0002  # frame time step
 
 
 
-setpoint = 0.1
+setpoint = 1
 sim = Simulation(dt, setpoint, theta0 = 0.4)
 # --------- Animation functions ---------
 def init():
@@ -76,7 +76,7 @@ def update(frame):
     while t < target_sim_time:
         real_elapsed = time.time() - real_start_time
         target_sim_time = real_elapsed * SIM_SPEED
-        loc, theta, t, acc, vel = sim.get_system_vars(ax, "angle")
+        loc, theta, t, acc, vel = sim.get_system_vars(ax, "acceleration")
 
     #sim.plot_briefly(ax)
     # Update cart position

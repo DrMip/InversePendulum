@@ -76,6 +76,12 @@ class Simulation():
             self.e_i_angle += e_p*self.h
             e_d = -1*self.thet_dot[-1]
 
+        elif flag=="acceleration":
+            setpoint = 0.23*setpoint/self.g
+            e_p = -self.theta_vector[-1] + setpoint
+            self.e_i_angle += e_p*self.h
+            e_d = -1*self.thet_dot[-1]
+
         else:
             e_p = 0
             e_i = 0
@@ -87,7 +93,7 @@ class Simulation():
             k_i = 7
 
             val = (k_p*e_p + k_d*e_d + k_i*self.e_i_vel)
-        if flag == "angle":
+        if flag == "angle" or flag=="acceleration":
             k_p = 8.5
             k_d = 0
             k_i = 17
