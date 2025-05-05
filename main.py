@@ -6,7 +6,7 @@ import matplotlib.animation as animation
 import time
 from Simulation import Simulation
 
-SIM_SPEED = 1 # Simulation runs 5x faster than real time
+SIM_SPEED = 0.01 # Simulation runs 5x faster than real time
 t = 0
 acc = 0
 vel = 0
@@ -47,8 +47,8 @@ dt = 0.0002  # frame time step
 
 
 
-setpoint = 1
-sim = Simulation(dt, setpoint, theta0 = 0.4)
+setpoint = 0.0
+sim = Simulation(dt, setpoint, theta0 = 0.01)
 # --------- Animation functions ---------
 def init():
     global real_start_time,ax
@@ -76,7 +76,7 @@ def update(frame):
     while t < target_sim_time:
         real_elapsed = time.time() - real_start_time
         target_sim_time = real_elapsed * SIM_SPEED
-        loc, theta, t, acc, vel = sim.get_system_vars(ax, "acceleration")
+        loc, theta, t, acc, vel = sim.get_system_vars(ax, "angle")
 
     #sim.plot_briefly(ax)
     # Update cart position
