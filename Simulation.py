@@ -43,7 +43,7 @@ class Simulation():
         self.tolerance = 0.02
 
 
-        self.setpoint = setpoint
+        #self.setpoint = setpoint
 
         self.I2 = (1/3.0)*self.mr*(self.l)**2
         
@@ -58,13 +58,13 @@ class Simulation():
         self.time_vector = [t0]
         self.velocity_vector = [vel0]
         self.accel_vector = [a0]
-        self.distance_vector = [0]
+        self.distance_vector = [0.0]
         self.theta_vector = [theta0]
         self.thet_dot = [theta_dot0]
-        self.theta_integral = [0]
-        self.e = [self.setpoint]
+        self.theta_integral = [0.0]
+        self.e = [self.setpoint_func()]
         self.e_precentage = [100]
-        self.voltage_vec = [0]
+        self.voltage_vec = [0.0]
 
 
     def PID_controller_volt(self, setpoint, flag = "velocity"):
@@ -83,23 +83,23 @@ class Simulation():
             setpoint = 0.714*setpoint/self.g
             e_p = -self.theta_vector[-1] + setpoint
             self.e_i_angle += e_p*self.h
-            e_d = -1*self.thet_dot[-1]  
+            e_d = -1*self.thet_dot[-1]
 
         elif flag=="vel&ang":
             e_p_vel = setpoint - self.velocity_vector[-1]
             print(e_p_vel)
             self.e_i_vel += e_p_vel*self.h
-            e_d_vel = -1*self.accel_vector[-1] 
+            e_d_vel = -1*self.accel_vector[-1]
 
             k_p_vel = 1
             k_d_vel = 0
-            k_i_vel = 0  
+            k_i_vel = 0
 
-            wanted_acceleration = (k_p_vel * e_p_vel + k_d_vel * e_d_vel + k_i_vel * self.e_i_vel)   
+            wanted_acceleration = (k_p_vel * e_p_vel + k_d_vel * e_d_vel + k_i_vel * self.e_i_vel)
             wanted_angle = 0.714*wanted_acceleration/self.g
             e_p = -self.theta_vector[-1] + wanted_angle
             self.e_i_angle += e_p*self.h
-            e_d = -1*self.thet_dot[-1]  
+            e_d = -1*self.thet_dot[-1]
 
 
 
@@ -122,15 +122,15 @@ class Simulation():
             val = (k_p * e_p + k_d * e_d + k_i * self.e_i_angle)
 
         self.e.append(e_p)
-        if self.setpoint - self.velocity_vector[0] > 0:
-            self.e_precentage.append(e_p/(self.setpoint - self.velocity_vector[0])*100)
+        if setpoint - self.velocity_vector[0] > 0:
+            self.e_precentage.append(e_p/(setpoint - self.velocity_vector[0])*100)
 
 
         if val>240:
             val = 240
         elif val < -240:
             val = -240
-        
+
         return val
 
     def f_vel(self, t, w, s, v, a, b, c):
@@ -156,7 +156,7 @@ class Simulation():
 
         ax[1].clear()
         ax[1].plot(self.time_vector, self.velocity_vector, label="v(t)", color='r')
-        ax[1].plot(self.time_vector, [self.setpoint]*len(self.time_vector), label="setpoint", color="m")
+        ax[1].plot(self.time_vector, [self.setpoint_func()]*len(self.time_vector), label="setpoint", color="m")
         ax[1].plot(self.time_vector, self.e, label="error", color="b")
 
         ax[1].set_xlabel("t")
@@ -178,29 +178,29 @@ class Simulation():
     #               self.plot_briefly(ax)
     #          if is_simulate:
     #               self.simulator.simulate(self.distance_vector[-1], -self.theta_vector[-1], self.time_vector[-1])
-            
+
     #          #self.root.update_idletasks()  # Process idle tasks (e.g., slider update)
     #          #self.root.update()
 
     def run(self, duration):
         while self.time_vector[-1]<duration:
-            self.runge_kutta4(self.time_vector[-1], "angle")
+            self.runge_kutta4(self.time_vector[-1], "angle", self.setpoint_func("BalanceAndVel"))
 
         return self.time2reach, self.time_in_tolerance
 
-             
+
     def get_system_vars(self, ax, flag = "velocity") -> (float,float,float, float, float):
-        self.runge_kutta4(self.time_vector[-1], flag)
+        self.runge_kutta4(self.time_vector[-1], flag, self.setpoint_func("BalanceAndVel"))
         #self.plot_briefly(ax)
         return self.distance_vector[-1], self.theta_vector[-1], self.time_vector[-1], self.accel_vector[-1], self.velocity_vector[-1]
-    
+
     def get_time_velocity(self):
         return self.time_vector, self.velocity_vector
 
 
     def limit_theta(self, theta):
         return math.fmod(theta + math.pi, 2 * math.pi) - math.pi
-    
+
 
     def f_all(self, t, y, v):
         w, s, theta, theta_dot = y
@@ -214,10 +214,10 @@ class Simulation():
         return [dw_dt, ds_dt, dtheta_dt, dtheta_dot_dt]
 
 
-    def runge_kutta4(self, ts, flag):
+    def runge_kutta4(self, ts, flag, setpoint):
                 w = self.velocity_vector[-1]
                 s = self.accel_vector[-1]
-                v = self.PID_controller_volt(self.setpoint, flag)
+                v = self.PID_controller_volt(setpoint, flag)
                 self.voltage_vec.append(v)
                 #v = self.voltage_slider.get()
 
@@ -229,7 +229,7 @@ class Simulation():
 
                 w_new = w + (self.h/6) * (k1w + 2*k2w + 2*k3w + k4w)
                 s_new = s + (self.h/6) * (k1s + 2*k2s + 2*k3s + k4s)
-                
+
                 self.velocity_vector.append(w_new)
                 self.accel_vector.append(s_new)
                 dist_new = w_new*self.h + self.distance_vector[-1]
@@ -254,25 +254,47 @@ class Simulation():
                 theta_int_new = theta_new*self.h + self.theta_integral[-1]
                 self.theta_integral.append(theta_int_new)
 
-                ts = ts + self.h 
+                ts = ts + self.h
                 self.time_vector.append(ts)
 
-                dif = abs(theta_new-self.setpoint)
+                dif = abs(theta_new-setpoint)
                 if dif<=self.tolerance:
                     if self.time2reach==-1:
                         self.time2reach = ts
                     else:
                         self.time_in_tolerance = ts - self.time2reach
+
+    def setpoint_func(self, setpoint_flag = "const"):
+        
+        if setpoint_flag == "sin":
+            return 0.1*math.sin(2*self.time_vector[-1])
+        if setpoint_flag == "const":
+            return 0.01
+        if setpoint_flag == "BalanceAndVel":
+            current_vel = self.velocity_vector[-1]
+            wanted_vel = 2
+            vel_error = wanted_vel - current_vel
+
+            kp = -0.5
+
+            acc = kp * vel_error
+            #return the degree
+            return math.atan2(acc, self.g)
+
+
+
+        
+            
                 
 
 
     def plot(self, time):
         while self.time_vector[-1]<time:
-            self.runge_kutta4(self.time_vector[-1], "vel&ang")
+            self.runge_kutta4(self.time_vector[-1], "angle", self.setpoint_func("sin"))
 
         
-        plt.plot(self.time_vector, self.accel_vector)
-        plt.plot(self.time_vector, self.velocity_vector)
+        plt.plot(self.time_vector, self.theta_vector)
+        #plt.plot(self.time_vector, self.velocity_vector)
 
         plt.show()
 
@@ -286,9 +308,9 @@ if __name__ == "__main__":
     # step = 0.01
     # dt = 0.0002
     # duration = 130
-
+    #
     # final_theta = 0.5
-    # current_theta = theta_start 
+    # current_theta = theta_start
     # while current_theta<final_theta:
     #     s = Simulation(dt, 0.01, theta0=current_theta)
     #     t2r, timeit = s.run(duration)
@@ -297,14 +319,14 @@ if __name__ == "__main__":
     #     t2rvec.append(t2r)
     #     timetvec.append(timeit)
     #     current_theta +=step
-
-
+    #
+    #
     # plt.plot(thetas_vec, t2rvec)
     # plt.plot(thetas_vec, timetvec)
     # plt.show()
 
-    s = Simulation(0.0002, 1, theta0=0.2)
-    s.plot(0.05)
+    s = Simulation(0.0002, 0.01, theta0=0)
+    s.plot(1)
     
 
 
