@@ -6,12 +6,13 @@ import matplotlib.animation as animation
 import time
 from Simulation import Simulation
 
-SIM_SPEED = 1 # Simulation runs 5x faster than real time
+SIM_SPEED = 0.01 # Simulation runs 5x faster than real time
 t = 0
 acc = 0
 vel = 0
 real_start_time = 0
 theta = 0
+loc = 0
 # --------- Set up figure and axes ---------
 fig, ax = plt.subplots()
 timer = ax.text(0.5, 0.9, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
@@ -20,7 +21,9 @@ acc_display = ax.text(0.3, 0.8, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5
                 transform=ax.transAxes, ha="center")
 vel_display = ax.text(0.5, 0.8, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
                 transform=ax.transAxes, ha="center")
-ax.set_xlim(-5,5)
+angle_display = ax.text(0.4, 0.85, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
+                transform=ax.transAxes, ha="center")
+ax.set_xlim(-7,7)
 ax.set_ylim(-1, 5)
 ax.set_aspect('equal')
 plt.grid()
@@ -40,9 +43,12 @@ ax.add_patch(cart_patch)
 pendulum_line, = ax.plot([], [], 'r-', lw=3)
 
 dt = 0.0002  # frame time step
+# fig2, ax2 = plt.subplots(4, 1, figsize=(10, 6))
 
 
-sim = Simulation(dt, theta0 = 0.01)
+
+setpoint = 0.0
+sim = Simulation(dt, setpoint, theta0 = 0.01)
 # --------- Animation functions ---------
 def init():
     global real_start_time,ax
@@ -53,22 +59,24 @@ def init():
     timer.set_text('2.5')
     acc_display.set_text(f"Acc: {acc:.4f} m/s^2")
     vel_display.set_text(f"Vel: {vel:.4f} m/s")
+    angle_display.set_text(f"Ang: {theta:.4f} rad")
+
 
     #ax = sim.init_plot()
 
-    return cart_patch, pendulum_line, timer, acc_display, vel_display
+    return cart_patch, pendulum_line, timer, acc_display, vel_display, angle_display
 
 
 def update(frame):
-    global t, real_start_time, acc, vel, theta,ax
+    global t, real_start_time, acc, vel, theta,ax, loc
 
     real_elapsed = time.time() - real_start_time  # How much real time passed
     target_sim_time = real_elapsed * SIM_SPEED  # We want to simulate faster
-
+    
     while t < target_sim_time:
         real_elapsed = time.time() - real_start_time
         target_sim_time = real_elapsed * SIM_SPEED
-        loc, theta, t, acc, vel = sim.get_system_vars("angle")
+        loc, theta, t, acc, vel = sim.get_system_vars(ax, "angle")
 
     #sim.plot_briefly(ax)
     # Update cart position
@@ -87,11 +95,16 @@ def update(frame):
     timer.set_text(f"Time: {t:.2f} s")
     acc_display.set_text(f"Acc: {acc:.2f} m/s^2")
     vel_display.set_text(f"Vel: {vel:.2f} m/s")
+    angle_display.set_text(f"Ang: {theta:.4f} rad")
 
-    return cart_patch, pendulum_line, timer, acc_display, vel_display
+
+    return cart_patch, pendulum_line, timer, acc_display, vel_display, angle_display
 
 
 
 # --------- Run the animation ---------
+
+
+
 ani = animation.FuncAnimation(fig, update, init_func=init, frames=10000,  interval=dt*1000, blit=True)
 plt.show()
