@@ -6,7 +6,8 @@ import matplotlib.animation as animation
 import time
 from Simulation import Simulation
 
-SIM_SPEED = 0.01 # Simulation runs 5x faster than real time
+SIM_SPEED = 1 # Simulation runs 5x faster than real time
+SCREEN_SIZE = 14
 t = 0
 acc = 0
 vel = 0
@@ -17,13 +18,13 @@ loc = 0
 fig, ax = plt.subplots()
 timer = ax.text(0.5, 0.9, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
                 transform=ax.transAxes, ha="center")
-acc_display = ax.text(0.3, 0.8, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
+acc_display = ax.text(0.2, 0.9, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
                 transform=ax.transAxes, ha="center")
-vel_display = ax.text(0.5, 0.8, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
+vel_display = ax.text(0.85, 0.9, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
                 transform=ax.transAxes, ha="center")
-angle_display = ax.text(0.4, 0.85, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
+angle_display = ax.text(0.5, 0.75, "", bbox={'facecolor': 'w', 'alpha':0.5, 'pad':5},
                 transform=ax.transAxes, ha="center")
-ax.set_xlim(-7,7)
+ax.set_xlim(-SCREEN_SIZE/2,SCREEN_SIZE/2)
 ax.set_ylim(-1, 5)
 ax.set_aspect('equal')
 plt.grid()
@@ -78,12 +79,13 @@ def update(frame):
         target_sim_time = real_elapsed * SIM_SPEED
         loc, theta, t, acc, vel = sim.get_system_vars(ax, "angle")
 
-    #sim.plot_briefly(ax)
+    #correct loc
+    corrected_loc = (loc + (SCREEN_SIZE/2)) % (SCREEN_SIZE) - SCREEN_SIZE/2
     # Update cart position
-    cart_patch.set_xy((loc - cart_width / 2, 0))
+    cart_patch.set_xy((corrected_loc - cart_width / 2, 0))
 
     # Calculate pendulum end position
-    pivot_x = loc
+    pivot_x = corrected_loc
     pivot_y = cart_height
     pendulum_x = pivot_x - pendulum_length * np.sin(theta)
     pendulum_y = pivot_y + pendulum_length * np.cos(theta)
